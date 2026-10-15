@@ -1,7 +1,9 @@
+import { Vector3 } from '@babylonjs/core';
 import { createScene } from './render/scene';
 import { createHighway } from './render/highway';
 import { createPlayerMesh } from './render/player';
 import { createObstaclePool } from './render/obstacles';
+import { createJuice } from './render/juice';
 import { checkAABBOverlap, entityToBoundingBox } from './core/collision';
 import { GameStateMachine } from './core/state';
 import { calculateScore, getStoredHighscore, saveHighscore } from './core/score';
@@ -26,12 +28,13 @@ const btnResume = document.getElementById('btn-resume') as HTMLButtonElement;
 const btnRestart = document.getElementById('btn-restart') as HTMLButtonElement;
 
 // 2. Engine & Scene Setup
-const { engine, scene } = createScene(canvas);
+const { engine, scene, camera } = createScene(canvas);
 const highway = createHighway(scene);
 const playerMesh = createPlayerMesh(scene);
 const obstaclePool = createObstaclePool(scene);
+const juice = createJuice(scene, camera);
 
-// 3. State & Logic Setup (Phase 3 - State Machine & Scoring)
+// 3. State & Logic Setup
 const fsm = new GameStateMachine('MENU');
 let elapsedGameTime = 0;
 let nearMissCount = 0;
@@ -108,7 +111,7 @@ btnResume.addEventListener('click', () => {
   updateUIOverlays();
 });
 
-// Input handling (Desktop Keyboard)
+// 5. Input Handling: Desktop Keyboard
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') inputState.left = true;
   if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') inputState.right = true;
@@ -132,34 +135,67 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') inputState.right = false;
 });
 
+// 6. Input Handling: Mobile Pointer / Touch Drag (Dual-Target)
+canvas.addEventListener('pointerdown', (e) => {
+  if (fsm.getState() === 'PLAYING') {
+    inputState.touchActive = true;
+    updateTouchTarget(e.clientX);
+  }
+});
+
+window.addEventListener('pointermove', (e) => {
+  if (inputState.touchActive && fsm.getState() === 'PLAYING') {
+    updateTouchTarget(e.clientX);
+  }
+});
+
+window.addEventListener('pointerup', () => {
+  inputState.touchActive = false;
+});
+
+function updateTouchTarget(clientX: number): void {
+  const rect = canvas.getBoundingClientRect();
+  const normalizedX = ((clientX - rect.left) / rect.width) * 2 - 1; // [-1, +1]
+  playerState.targetX = normalizedX * maxPlayerX;
+}
+
 // Initial UI
 updateUIOverlays();
 
-// 5. Game Loop
+// 7. Game Loop
 engine.runRenderLoop(() => {
   const deltaTime = engine.getDeltaTime() / 1000;
   const currentState = fsm.getState();
 
+  juice.update(deltaTime);
+
   if (currentState === 'PLAYING') {
     elapsedGameTime += deltaTime;
 
-    // Speed progression over time
+    // Speed progression
     const speedProgress = Math.min(
       GAME_CONFIG.maxObstacleSpeed,
       GAME_CONFIG.baseObstacleSpeed + (elapsedGameTime / 60) * GAME_CONFIG.speedIncreasePerMin
     );
     currentSpeed = speedProgress;
 
-    // Calculate score
+    // Scoring
     currentScore = calculateScore(elapsedGameTime, nearMissCount);
     scoreDisplay.textContent = currentScore.toString();
     speedDisplay.textContent = Math.round(currentSpeed).toString();
 
-    // 1. Move player with smooth damping
-    const moveDir = (inputState.right ? 1 : 0) - (inputState.left ? 1 : 0);
-    playerState.targetX += moveDir * GAME_CONFIG.playerSpeed * deltaTime;
+    // 1. Move player with smooth damping & banking tilt (Juice)
+    if (!inputState.touchActive) {
+      const moveDir = (inputState.right ? 1 : 0) - (inputState.left ? 1 : 0);
+      playerState.targetX += moveDir * GAME_CONFIG.playerSpeed * deltaTime;
+    }
     playerState.targetX = Math.max(-maxPlayerX, Math.min(maxPlayerX, playerState.targetX));
-    playerState.x += (playerState.targetX - playerState.x) * Math.min(1.0, GAME_CONFIG.playerDamping * deltaTime);
+    const deltaX = playerState.targetX - playerState.x;
+    playerState.x += deltaX * Math.min(1.0, GAME_CONFIG.playerDamping * deltaTime);
+
+    // Dynamic Banking Tilt
+    const targetTilt = -Math.max(-1, Math.min(1, deltaX * 1.5)) * GAME_CONFIG.playerMaxTilt;
+    playerState.tilt += (targetTilt - playerState.tilt) * Math.min(1.0, 10.0 * deltaTime);
 
     // 2. Highway animation
     highway.update(currentSpeed, deltaTime);
@@ -212,9 +248,12 @@ engine.runRenderLoop(() => {
         obs.depth
       );
 
-      // Collision detection
+      // Collision detection with Screen Shake & Particles
       if (checkAABBOverlap(playerBox, obsBox)) {
         fsm.transition('COLLISION');
+        juice.triggerScreenShake();
+        juice.triggerCrashParticles(new Vector3(playerState.x, playerState.y, playerState.z));
+
         if (saveHighscore(currentScore)) {
           highscore = currentScore;
           highscoreDisplay.textContent = highscore.toString();
@@ -239,6 +278,7 @@ engine.runRenderLoop(() => {
     // Idle background effect
     highway.update(10.0, deltaTime);
     playerState.y = 0.6 + Math.sin(Date.now() * 0.003) * 0.1;
+    playerState.tilt = Math.sin(Date.now() * 0.002) * 0.05;
   }
 
   // Update renderers
