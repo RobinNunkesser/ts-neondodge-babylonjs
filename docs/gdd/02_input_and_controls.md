@@ -45,3 +45,17 @@ Das Spiel muss ohne Code-Anpassung sowohl auf Desktop-Rechnern als auch auf mobi
   - Blickziel (LookAt): Punkt leicht vor dem Gleiter ($Z = +10$).
 - **Field of View (FoV):**
   - Dynamisches FoV: Erhöht sich bei steigender Geschwindigkeit minimal, um den Eindruck von Tempo zu verstärken (z. B. $60^\circ \to 75^\circ$).
+
+---
+
+## Optical Flow & Kinematik der Relativbewegung (Treadmill-Prinzip)
+
+- **Referenzsystem:**
+  - Der Spieler-Gleiter ist auf der Z-Achse verankert ($z_{\text{player}} = 0$).
+  - Die simulierte Vorwärtsbewegung wird über **Relativbewegung** der Welt vermittelt (Laufband-/Treadmill-Architektur).
+- **Vektor des Optical Flow:**
+  - Alle sichtbaren Elemente (Hindernisse, Highway-Markierungen) müssen sich zwingend mit dem Vektor $\vec{v} = (0, 0, -\text{speed})$ auf die Kamera zu bewegen.
+- **Highway-Textur-Scrolling:**
+  - Das Scrolling der Textur-V-Achse muss strikt positiv getaktet sein:
+    $$v_{\text{offset}}(t + \Delta t) = v_{\text{offset}}(t) + \left(\frac{\text{speed}}{\text{roadLength}}\right) \cdot \Delta t$$
+  - **Achtung vor der Vektions-Illusion:** Ein negatives Vorzeichen kehrt den wahrgenommenen optischen Fluss des Bodens um. Da die Straße den Großteil des Bildfelds ausmacht, erzeugt dies beim Spieler den irrtümlichen Eindruck einer Rückwärtsfahrt.

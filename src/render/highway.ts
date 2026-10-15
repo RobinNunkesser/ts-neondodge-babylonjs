@@ -76,7 +76,7 @@ export function createHighway(scene: Scene): HighwayContext {
     ground,
     update: (speed: number, deltaTime: number) => {
       offsetV += (speed / roadLength) * deltaTime;
-      dynTexture.vOffset = -offsetV;
+      dynTexture.vOffset = offsetV; // Positive offset streams texture towards the player (forward optical flow)
     },
   };
 }
