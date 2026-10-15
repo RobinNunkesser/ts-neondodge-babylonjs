@@ -1,7 +1,10 @@
 # Neon Dodge (Babylon.js & TypeScript)
 
 > **Agentic Game Development Showcase** zur Vorlesung *Interaktive Grafikanwendungen (IGA)*  
-> Prof. Dr. Robin Nunkesser – Hochschule Hamm-Lippstadt (HSHL)
+> Prof. Dr. Robin Nunkesser – Hochschule Hamm-Lippstadt (HSHL)  
+> 🎮 **Live Demo:** [https://robinnunkesser.github.io/ts-neondodge-babylonjs/](https://robinnunkesser.github.io/ts-neondodge-babylonjs/)
+
+[![CI & Deploy to GitHub Pages](https://github.com/RobinNunkesser/ts-neondodge-babylonjs/actions/workflows/deploy.yml/badge.svg)](https://github.com/RobinNunkesser/ts-neondodge-babylonjs/actions/workflows/deploy.yml)
 
 Dieses Repository dient als didaktische Referenzimplementierung und Aufgaben-Template für das Thema **Spec-Driven Game Development** mit KI-Agenten (z. B. Google Antigravity, GitHub Copilot, Cursor, Claude Code).
 
