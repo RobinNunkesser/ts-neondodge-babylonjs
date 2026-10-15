@@ -8,6 +8,7 @@ import {
   UniversalCamera,
   GlowLayer,
 } from '@babylonjs/core';
+import { GAME_CONFIG } from '../config';
 
 export interface SceneContext {
   engine: Engine;
@@ -19,7 +20,7 @@ export interface SceneContext {
 export function createScene(canvas: HTMLCanvasElement): SceneContext {
   const engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
   const scene = new Scene(engine);
-  scene.clearColor = new Color4(0.03, 0.027, 0.06, 1.0); // #080710 Void
+  scene.clearColor = Color4.FromHexString(GAME_CONFIG.colors.bgVoid + 'ff');
 
   // Camera looking down the highway (+Z)
   const camera = new UniversalCamera('chaseCamera', new Vector3(0, 3.5, -8), scene);
@@ -35,7 +36,7 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   const glow = new GlowLayer('glow', scene, {
     blurKernelSize: 32,
   });
-  glow.intensity = 0.85;
+  glow.intensity = GAME_CONFIG.glowIntensity;
 
   window.addEventListener('resize', () => {
     engine.resize();

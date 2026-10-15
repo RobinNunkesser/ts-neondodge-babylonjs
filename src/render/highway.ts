@@ -7,13 +7,17 @@ import {
   Mesh,
   DynamicTexture,
 } from '@babylonjs/core';
+import { GAME_CONFIG } from '../config';
 
 export interface HighwayContext {
   ground: Mesh;
   update: (speed: number, deltaTime: number) => void;
 }
 
-export function createHighway(scene: Scene, roadWidth = 14, roadLength = 140): HighwayContext {
+export function createHighway(scene: Scene): HighwayContext {
+  const roadWidth = GAME_CONFIG.roadWidth;
+  const roadLength = GAME_CONFIG.roadLength;
+
   const ground = MeshBuilder.CreateGround(
     'highway',
     { width: roadWidth, height: roadLength, subdivisions: 2 },
@@ -31,12 +35,12 @@ export function createHighway(scene: Scene, roadWidth = 14, roadLength = 140): H
   ctx.fillRect(0, 0, textureSize, textureSize);
 
   // Road borders
-  ctx.strokeStyle = '#00f0ff';
+  ctx.strokeStyle = GAME_CONFIG.colors.primaryCyan;
   ctx.lineWidth = 14;
   ctx.strokeRect(7, 0, textureSize - 14, textureSize);
 
   // Center dashed neon stripes
-  ctx.strokeStyle = '#ff0055';
+  ctx.strokeStyle = GAME_CONFIG.colors.accentMagenta;
   ctx.lineWidth = 8;
   ctx.setLineDash([40, 30]);
   ctx.beginPath();
@@ -45,7 +49,7 @@ export function createHighway(scene: Scene, roadWidth = 14, roadLength = 140): H
   ctx.stroke();
 
   // Lateral lanes
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+  ctx.strokeStyle = GAME_CONFIG.colors.gridSubtle;
   ctx.lineWidth = 4;
   ctx.setLineDash([20, 20]);
   ctx.beginPath();

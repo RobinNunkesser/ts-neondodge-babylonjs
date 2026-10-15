@@ -7,6 +7,7 @@ import {
   Vector3,
 } from '@babylonjs/core';
 import { PlayerState } from '../types';
+import { GAME_CONFIG } from '../config';
 
 export interface PlayerMeshContext {
   root: Mesh;
@@ -20,7 +21,12 @@ export function createPlayerMesh(scene: Scene): PlayerMeshContext {
   // Main fuselage (slanted cylinder/prism)
   const body = MeshBuilder.CreateCylinder(
     'playerBody',
-    { height: 2.2, diameterTop: 0.2, diameterBottom: 1.4, tessellation: 4 },
+    {
+      height: GAME_CONFIG.playerDepth,
+      diameterTop: 0.2,
+      diameterBottom: 1.4,
+      tessellation: 4,
+    },
     scene
   );
   body.rotation.x = Math.PI / 2;
@@ -28,21 +34,21 @@ export function createPlayerMesh(scene: Scene): PlayerMeshContext {
 
   const bodyMat = new StandardMaterial('playerBodyMat', scene);
   bodyMat.diffuseColor = new Color3(0.05, 0.05, 0.1);
-  bodyMat.emissiveColor = new Color3(0.0, 0.8, 1.0); // Cyan glow
+  bodyMat.emissiveColor = Color3.FromHexString(GAME_CONFIG.colors.primaryCyan);
   bodyMat.specularColor = new Color3(1, 1, 1);
   body.material = bodyMat;
 
   // Wings
   const wings = MeshBuilder.CreateBox(
     'playerWings',
-    { width: 2.4, height: 0.12, depth: 0.8 },
+    { width: GAME_CONFIG.playerWidth + 0.4, height: 0.12, depth: 0.8 },
     scene
   );
   wings.position.z = -0.3;
   wings.parent = root;
 
   const wingMat = new StandardMaterial('playerWingMat', scene);
-  wingMat.emissiveColor = new Color3(0.8, 0.0, 0.4); // Magenta accent
+  wingMat.emissiveColor = Color3.FromHexString(GAME_CONFIG.colors.accentMagenta);
   wings.material = wingMat;
 
   // Thruster glow
@@ -56,7 +62,7 @@ export function createPlayerMesh(scene: Scene): PlayerMeshContext {
   thruster.parent = root;
 
   const thrusterMat = new StandardMaterial('thrusterMat', scene);
-  thrusterMat.emissiveColor = new Color3(1.0, 0.9, 0.1); // Golden yellow
+  thrusterMat.emissiveColor = Color3.FromHexString(GAME_CONFIG.colors.accentYellow);
   thruster.material = thrusterMat;
 
   return {

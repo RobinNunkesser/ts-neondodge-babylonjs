@@ -4,22 +4,23 @@ import { createPlayerMesh } from './render/player';
 import { createObstaclePool } from './render/obstacles';
 import { checkAABBOverlap, entityToBoundingBox } from './core/collision';
 import { PlayerState, ObstacleEntity, InputState } from './types';
+import { GAME_CONFIG } from './config';
 
 const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
 const { engine, scene } = createScene(canvas);
-const highway = createHighway(scene, 14, 140);
+const highway = createHighway(scene);
 const playerMesh = createPlayerMesh(scene);
 const obstaclePool = createObstaclePool(scene);
 
-// Initial state for Phase 1 (Scaffolding & Core Loop)
+// State driven completely by GAME_CONFIG (Phase 2 - Parameter Isolation)
 const playerState: PlayerState = {
   x: 0,
   targetX: 0,
   y: 0.6,
   z: 0,
-  width: 2.0,
-  height: 0.8,
-  depth: 2.2,
+  width: GAME_CONFIG.playerWidth,
+  height: GAME_CONFIG.playerHeight,
+  depth: GAME_CONFIG.playerDepth,
   tilt: 0,
 };
 
@@ -35,7 +36,9 @@ let nextObstacleId = 1;
 let spawnTimer = 0;
 let isGameOver = false;
 
-// Input handling (Phase 1 basic keyboard)
+const maxPlayerX = GAME_CONFIG.roadWidth / 2 - GAME_CONFIG.playerWidth / 2;
+
+// Input handling
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') inputState.left = true;
   if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') inputState.right = true;
@@ -51,28 +54,31 @@ engine.runRenderLoop(() => {
   const deltaTime = engine.getDeltaTime() / 1000;
 
   if (!isGameOver) {
-    // 1. Move player
+    // 1. Move player with smooth damping
     const moveDir = (inputState.right ? 1 : 0) - (inputState.left ? 1 : 0);
-    playerState.targetX += moveDir * 18.0 * deltaTime;
-    playerState.targetX = Math.max(-6.0, Math.min(6.0, playerState.targetX));
-    playerState.x += (playerState.targetX - playerState.x) * Math.min(1.0, 12.0 * deltaTime);
+    playerState.targetX += moveDir * GAME_CONFIG.playerSpeed * deltaTime;
+    playerState.targetX = Math.max(-maxPlayerX, Math.min(maxPlayerX, playerState.targetX));
+    playerState.x += (playerState.targetX - playerState.x) * Math.min(1.0, GAME_CONFIG.playerDamping * deltaTime);
 
     // 2. Highway animation
-    highway.update(24.0, deltaTime);
+    highway.update(GAME_CONFIG.baseObstacleSpeed, deltaTime);
 
-    // 3. Spawner
-    spawnTimer += deltaTime;
-    if (spawnTimer >= 0.9) {
+    // 3. Spawner using configured interval
+    spawnTimer += deltaTime * 1000;
+    if (spawnTimer >= GAME_CONFIG.initialSpawnIntervalMs) {
       spawnTimer = 0;
-      const laneX = (Math.floor(Math.random() * 5) - 2) * 2.8; // 5 lanes
+      const laneStep = GAME_CONFIG.roadWidth / GAME_CONFIG.laneCount;
+      const laneIndex = Math.floor(Math.random() * GAME_CONFIG.laneCount) - Math.floor(GAME_CONFIG.laneCount / 2);
+      const laneX = laneIndex * laneStep;
+
       obstacles.push({
         id: nextObstacleId++,
         x: laneX,
-        y: 1.1,
-        z: 85,
-        width: 2.6,
-        height: 2.2,
-        depth: 1.5,
+        y: GAME_CONFIG.obstacleHeight / 2,
+        z: GAME_CONFIG.spawnDistanceZ,
+        width: GAME_CONFIG.obstacleWidth,
+        height: GAME_CONFIG.obstacleHeight,
+        depth: GAME_CONFIG.obstacleDepth,
         active: true,
       });
     }
@@ -89,7 +95,7 @@ engine.runRenderLoop(() => {
 
     for (const obs of obstacles) {
       if (!obs.active) continue;
-      obs.z -= 24.0 * deltaTime;
+      obs.z -= GAME_CONFIG.baseObstacleSpeed * deltaTime;
 
       const obsBox = entityToBoundingBox(
         obs.x,
@@ -106,7 +112,7 @@ engine.runRenderLoop(() => {
         break;
       }
 
-      if (obs.z < -10) {
+      if (obs.z < GAME_CONFIG.despawnDistanceZ) {
         obs.active = false;
       }
     }

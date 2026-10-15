@@ -6,6 +6,7 @@ import {
   Mesh,
 } from '@babylonjs/core';
 import { ObstacleEntity } from '../types';
+import { GAME_CONFIG } from '../config';
 
 export interface ObstaclePoolContext {
   updateMeshes: (entities: ObstacleEntity[]) => void;
@@ -17,7 +18,7 @@ export function createObstaclePool(scene: Scene): ObstaclePoolContext {
 
   const mat = new StandardMaterial('obstacleMat', scene);
   mat.diffuseColor = new Color3(0.1, 0.0, 0.05);
-  mat.emissiveColor = new Color3(1.0, 0.0, 0.35); // Hot Magenta
+  mat.emissiveColor = Color3.FromHexString(GAME_CONFIG.colors.accentMagenta);
   mat.specularColor = new Color3(1, 0.5, 0.7);
 
   const getOrCreateMesh = (entity: ObstacleEntity): Mesh => {
@@ -38,7 +39,6 @@ export function createObstaclePool(scene: Scene): ObstaclePoolContext {
     updateMeshes: (entities: ObstacleEntity[]) => {
       const activeIds = new Set(entities.filter((e) => e.active).map((e) => e.id));
 
-      // Remove inactive or despawned meshes
       for (const [id, mesh] of meshMap.entries()) {
         if (!activeIds.has(id)) {
           mesh.dispose();
@@ -46,7 +46,6 @@ export function createObstaclePool(scene: Scene): ObstaclePoolContext {
         }
       }
 
-      // Update positions of active meshes
       for (const entity of entities) {
         if (entity.active) {
           const mesh = getOrCreateMesh(entity);
