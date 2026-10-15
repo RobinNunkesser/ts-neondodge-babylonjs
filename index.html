@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Neon Dodge — 3D Babylon.js Arcade Dodger</title>
+    <meta name="description" content="A fast-paced 3D arcade endless dodger built with Babylon.js and TypeScript using Spec-Driven Agentic Game Development." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="game-container">
+      <canvas id="renderCanvas"></canvas>
+
+      <!-- HUD Top Bar -->
+      <header id="hud" class="hidden">
+        <div class="hud-item">
+          <span class="hud-label">SCORE</span>
+          <span id="score-display" class="hud-value">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">SPEED</span>
+          <span id="speed-display" class="hud-value">24</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">BEST</span>
+          <span id="highscore-display" class="hud-value">0</span>
+        </div>
+      </header>
+
+      <!-- UI Overlay Screens -->
+      <div id="menu-overlay" class="overlay active">
+        <div class="card neon-border">
+          <h1 class="glow-title">NEON DODGE</h1>
+          <p class="subtitle">Cyberpunk 3D Endless Dodger</p>
+          <div class="instructions">
+            <p><strong>Desktop:</strong> [A] / [D] oder [Pfeiltasten] zum Ausweichen</p>
+            <p><strong>Mobile:</strong> Wischen oder Bildschirmhälften antippen</p>
+            <p><strong>Pause:</strong> [ESC] oder [P]</p>
+          </div>
+          <button id="btn-start" class="btn-neon">START ENGINE</button>
+        </div>
+      </div>
+
+      <div id="pause-overlay" class="overlay hidden">
+        <div class="card neon-border">
+          <h2 class="glow-title">PAUSE</h2>
+          <p class="subtitle">System angehalten</p>
+          <button id="btn-resume" class="btn-neon">FORTSETZEN</button>
+        </div>
+      </div>
+
+      <div id="gameover-overlay" class="overlay hidden">
+        <div class="card neon-border">
+          <h2 class="glow-title danger">SYSTEM FAILURE</h2>
+          <p class="subtitle">Kollision registriert</p>
+          <div class="score-summary">
+            <div>Score: <span id="final-score">0</span></div>
+            <div>Highscore: <span id="final-best">0</span></div>
+          </div>
+          <button id="btn-restart" class="btn-neon">NOCHMAL SPIELEN</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
